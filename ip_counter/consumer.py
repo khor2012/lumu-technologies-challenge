@@ -11,8 +11,6 @@ if sys.version_info >= (3, 12, 0):
 
 from kafka import KafkaConsumer
 
-HYPERLOGLOG_NAME = 'default'
-
 
 def main():
     parser = argparse.ArgumentParser(description='Kafka Message Receiver')

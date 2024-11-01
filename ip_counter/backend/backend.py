@@ -21,9 +21,9 @@ class Backend:
 
 
 class RedisBackend(Backend):
-    def __init__(self, hyperlog):
+    def __init__(self, hyperlog='default'):
         self.connection = redis.Redis(host='localhost', port=6379, db=0)
-        self.hyperlog = hyperlog | 'default'
+        self.hyperlog = hyperlog
 
     def process_event(self, event):
         self.connection.pfadd(self.hyperlog, event["device_ip"])
