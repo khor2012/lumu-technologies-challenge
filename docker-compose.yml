@@ -41,3 +41,14 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.10
+    hostname: clickhouse
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: "default"
+      CLICKHOUSE_PASSWORD: ""

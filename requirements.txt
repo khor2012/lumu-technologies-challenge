@@ -1,3 +1,4 @@
 redis
 kafka-python
 six
+clickhouse-connect

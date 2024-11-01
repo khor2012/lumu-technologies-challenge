@@ -35,16 +35,16 @@ If having approximated values wouldn't fit, a second solution is proposed.
 docker compose up -d
 ```
 
-2. Start the producer:
+2. Start the consumer:
+
+```bash
+python ip_counter/consumer.py --topic "example" --backend redis
+```
+
+3. Start the producer:
 
 ```bash
 python ip_counter/producer.py --topic "example" --num_devices 10000 --pause_ms 0 --num_messages 1000000
-```
-
-3. Start the consumer:
-
-```bash
-python ip_counter/consumer.py --topic "example"
 ```
 
 *Output*:
@@ -60,3 +60,55 @@ Total devices: 10035
 
 As explained above this solution have accuracy problems but reduces the overall
 complexity of the system and highly reduces the storage needed.
+
+## ClickHouse implementation
+
+ClickHouse is an analytical database which allows for high data ingestion
+and consumption. I've created a table called events to store all the events.
+
+To improve the data ingestion rate I've decided to implement batching of insert
+and to make we are not too much behind the Kafka events, event batches are
+flush every 30 seconds just to make sure no events are lost in case the event
+batch is not full. This is mainly because ClickHouse is really good at batch inserts.
+
+```sql
+CREATE TABLE IF NOT EXISTS events (
+    timestamp DateTime64,
+    device_ip String,
+    error_code Int8
+)
+ENGINE MergeTree ORDER BY device_ip
+```
+
+### How to run
+
+1. Start the services (kafka, zookeeper, redis):
+
+```bash
+docker compose up -d
+```
+
+2. Start the consumer:
+
+```bash
+python ip_counter/consumer.py --topic "example" --backend clickhouse
+```
+
+3. Start the producer:
+
+```bash
+python ip_counter/producer.py --topic "example" --num_devices 10000 --pause_ms 0 --num_messages 1000000
+```
+
+*Output*:
+
+```
+Total devices: (10000,)
+Total devices: (10000,)
+Total devices: (10000,)
+Total devices: (10000,)
+```
+
+This solution have similar performance as the Redis implementation but has the
+advantage of having exact numbers and the data is available for later retrieval
+and analysis.

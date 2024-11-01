@@ -34,4 +34,4 @@ def parse_timestamp(timestamp: Union[int, str]):
             raise ValueError("Cannot parse", timestamp)
     else:
         raise ValueError("Input format is unknown.")
-    return parsed_timestamp.strftime(TIMESTAMP_FORMATS[0])
+    return parsed_timestamp
