@@ -13,6 +13,19 @@ is the expected format.
 python ip_counter/test.py
 ```
 
+*Output*:
+
+```
+val: 2021-12-03T16:15:30.235Z
+in : 2021-12-03T16:15:30.235Z
+out: 2021-12-03T16:15:30.235
+
+val: 3336042095000
+in : 2075-09-18T14:21:35.000Z
+out: 2075-09-18T14:21:35.000+00:00
+
+...
+```
 Make sure to add different scenarios on the `input.txt` file.
 
 ## Part 2

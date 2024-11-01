@@ -11,7 +11,7 @@ class Backend:
             parsed = int(parsed)
         except ValueError:
             pass
-        event['timestamp'] = parse_timestamp(parsed)
+        event['timestamp'] = parse_timestamp(parsed, raw=True)
 
 
 class RedisBackend(Backend):

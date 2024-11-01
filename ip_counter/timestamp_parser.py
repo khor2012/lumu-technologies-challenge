@@ -11,7 +11,7 @@ TIMESTAMP_FORMATS = [
 ]
 
 
-def parse_timestamp(timestamp: Union[int, str]):
+def parse_timestamp(timestamp: Union[int, str], raw=False):
     """
     Receives a timestamp value (which can be a string or a numeric value)
     and parses it into the correct UTC timestamp representation.
@@ -34,4 +34,5 @@ def parse_timestamp(timestamp: Union[int, str]):
             raise ValueError("Cannot parse", timestamp)
     else:
         raise ValueError("Input format is unknown.")
-    return parsed_timestamp
+
+    return parsed_timestamp if raw else parsed_timestamp.isoformat(timespec='milliseconds')
