@@ -4,6 +4,12 @@ import random
 import time
 from datetime import datetime, timezone
 
+import sys
+
+if sys.version_info >= (3, 12, 0):
+    import six
+    sys.modules['kafka.vendor.six.moves'] = six.moves
+
 from kafka import KafkaProducer
 
 TIMESTAMP_FORMATS = [
