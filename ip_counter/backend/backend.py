@@ -1,8 +1,14 @@
 import redis
 import clickhouse_connect
 from datetime import datetime, timedelta
+import time
 
 from timestamp_parser import parse_timestamp
+
+from threading import Thread, Lock
+
+EVENT_QUEUE = []
+
 
 class Backend:
     def parse(self, event):
@@ -28,6 +34,7 @@ class RedisBackend(Backend):
 
 class ClickHouseBackend(Backend):
     table = 'events'
+    keys = ["timestamp", "device_ip", "error_code"]
 
     def __init__(self, host='localhost', username='default', password='', max_events=10_000):
         self.connection = clickhouse_connect.get_client(
@@ -43,15 +50,33 @@ class ClickHouseBackend(Backend):
             """
         )
         self.max_events = max_events
-        self.event_queue = []
         self.last_sent = datetime.now()
 
+        self.data_lock = Lock()
+        thread = Thread(target=self.async_insert, args=(EVENT_QUEUE,self.last_sent))
+        thread.start()
+
+
+    def async_insert(self, event_queue, last_sent):
+        while True:
+            if datetime.now() > last_sent + timedelta(seconds=30) and event_queue:
+                self.connection.insert(self.table, event_queue, column_names=self.keys)
+                with self.data_lock:
+                    event_queue.clear()
+                last_sent = datetime.now()
+                print("Flushing events", last_sent)
+            time.sleep(0.1)
+
     def process_event(self, event: dict):
+        global EVENT_QUEUE
         row = list(event.values())
-        self.event_queue.append(row)
-        if len(self.event_queue) > self.max_events or datetime.now() > self.last_sent + timedelta(seconds=30):
-            self.connection.insert(self.table, self.event_queue, column_names=event.keys())
-            self.event_queue = []
+        with self.data_lock:
+            EVENT_QUEUE.append(row)
+        if len(EVENT_QUEUE) > self.max_events:
+            print(f"Inserting {len(EVENT_QUEUE)} events")
+            self.connection.insert(self.table, EVENT_QUEUE, column_names=self.keys)
+            with self.data_lock:
+                EVENT_QUEUE.clear()
             self.last_sent = datetime.now()
 
     def count(self):

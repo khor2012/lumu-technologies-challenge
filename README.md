@@ -84,6 +84,11 @@ and to make we are not too much behind the Kafka events, event batches are
 flush every 30 seconds just to make sure no events are lost in case the event
 batch is not full. This is mainly because ClickHouse is really good at batch inserts.
 
+As the main program loop depends on the consumer (receiving the event), we need
+to run a process in parallel to insert the events every 30 secons, this is achieved
+using python `threading` library and using a `Lock` to share the list of events and
+the `last_sent` time.
+
 ```sql
 CREATE TABLE IF NOT EXISTS events (
     timestamp DateTime64,
