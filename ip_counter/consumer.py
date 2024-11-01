@@ -1,6 +1,8 @@
 import sys
 import argparse
 import json
+import redis
+from datetime import datetime, timedelta
 
 
 if sys.version_info >= (3, 12, 0):
@@ -9,9 +11,8 @@ if sys.version_info >= (3, 12, 0):
 
 from kafka import KafkaConsumer
 
+HYPERLOGLOG_NAME = 'default'
 
-def process_message(message: dict):
-    print(message)
 
 def main():
     parser = argparse.ArgumentParser(description='Kafka Message Receiver')
@@ -22,9 +23,13 @@ def main():
     consumer = KafkaConsumer(args.topic, bootstrap_servers=args.bootstrap_servers,
                              value_deserializer=lambda v: json.loads(v),)
 
+    connection = redis.Redis(host='localhost', port=6379, db=0)
+    last_print = datetime.now()
     for message in consumer:
-        process_message(message.value)
-
+        connection.pfadd(HYPERLOGLOG_NAME, message.value["device_ip"])
+        if datetime.now() > last_print + timedelta(seconds=30):
+            print("Total devices:", connection.pfcount(HYPERLOGLOG_NAME))
+            last_print = datetime.now()
 
 if __name__ == '__main__':
     main()
