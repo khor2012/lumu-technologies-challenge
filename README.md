@@ -10,7 +10,7 @@ is the expected format.
 ### How to run
 
 ```bash
-python timestamp_parser/test.py
+python ip_counter/test.py
 ```
 
 Make sure to add different scenarios on the `input.txt` file.
